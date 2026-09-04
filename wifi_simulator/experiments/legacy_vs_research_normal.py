@@ -79,7 +79,7 @@ def run_legacy(seed: int) -> dict:
         always-on interference sources at pt_max).
     """
     LEGACY_ROOT = os.environ.get(
-        "LEGACY_PROJECT3_ROOT", "/Users/yiwei/Desktop/Project_3"
+        "LEGACY_PROJECT3_ROOT", os.path.expanduser("~/Project_3")
     )
     if LEGACY_ROOT not in sys.path:
         sys.path.insert(0, LEGACY_ROOT)
