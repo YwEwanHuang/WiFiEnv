@@ -20,6 +20,9 @@ class ActiveTx:
     start_ns: int
     end_ns: int
     tx_power_dbm: float
+    # ponytail: pre-computed signal power in dBm at receiver.
+    # Eliminates repeated path_loss + distance lookup at TX_END.
+    signal_dbm: float | None = None
     # Set at commit_slot if multiple MACs started TX simultaneously in the
     # same slot. All such TXs are pre-marked as collided.
     collided: bool = False
@@ -33,23 +36,24 @@ class ChannelState:
         self._busy_ns_total: int = 0
 
     def start_tx(self, ap_id: int, link_id: int, packet_id: int,
-                 start_ns: int, end_ns: int, tx_power_dbm: float) -> None:
+                 start_ns: int, end_ns: int, tx_power_dbm: float,
+                 signal_dbm: float | None = None) -> None:
         self._active.append(ActiveTx(ap_id, link_id, packet_id,
-                                     start_ns, end_ns, tx_power_dbm))
+                                     start_ns, end_ns, tx_power_dbm,
+                                     signal_dbm=signal_dbm))
 
     def mark_collisions_at_slot(self, slot_start_ns: int) -> None:
-        """Mark all active TXs that started in this slot boundary as collided.
-
-        Called by the simulator after commit_slot has registered all new TXs
-        for this slot. Any pair of TXs that started simultaneously in the same
-        slot is a collision; both must report FAIL_COLLISION. We pre-mark
-        them so that whichever TX_END fires first can pull its own TX without
-        erasing the collision evidence for the peer.
-        """
-        same_slot = [at for at in self._active if at.start_ns == slot_start_ns]
-        if len(same_slot) > 1:
-            for at in same_slot:
-                at.collided = True
+        """Mark all active TXs that started in this slot boundary as collided."""
+        count = 0
+        for at in self._active:
+            if at.start_ns == slot_start_ns:
+                count += 1
+                if count > 1:
+                    break
+        if count > 1:
+            for at in self._active:
+                if at.start_ns == slot_start_ns:
+                    at.collided = True
 
     def finish_tx(self, ap_id: int, packet_id: int) -> ActiveTx | None:
         for i, at in enumerate(self._active):
@@ -60,7 +64,10 @@ class ChannelState:
         return None
 
     def is_busy(self, now_ns: int, exclude_ap: int | None = None) -> bool:
-        """Legacy helper (kept for compatibility). True if any TX covers now_ns."""
+        """True if any TX is active at exactly now_ns (inclusive start).
+
+        Used by tests and callers that need exact-timepoint busy check.
+        """
         for at in self._active:
             if exclude_ap is not None and at.ap_id == exclude_ap:
                 continue
@@ -69,9 +76,9 @@ class ChannelState:
         return False
 
     def is_busy_at(self, now_ns: int, exclude_ap: int | None = None) -> bool:
-        """Busy at the START of a slot — only counts TXs that started STRICTLY
-        before now_ns. Used during slot-boundary processing so that TXs starting
-        in the current slot don't count as already-on for other MACs.
+        """Busy at slot boundary — only counts TXs that started STRICTLY before
+        now_ns. Used by the simulator during slot-boundary processing so that
+        TXs starting in the current slot do not appear busy to other MACs.
         """
         for at in self._active:
             if exclude_ap is not None and at.ap_id == exclude_ap:
@@ -79,16 +86,6 @@ class ChannelState:
             if at.start_ns < now_ns and at.end_ns > now_ns:
                 return True
         return False
-
-    def active_rx_powers_dbm(self, now_ns: int, rx_pos: tuple[float, float],
-                             exclude_ap: int) -> list[float]:
-        """Return received-power dBm at rx for all currently-active TXs.
-
-        Used to compute aggregate interference at a receiver. Distance-based
-        path loss is applied via PathLossModel in the simulator; this method
-        just exposes the *Tx* state.
-        """
-        raise NotImplementedError("Use Simulator.active_rx_powers_dbm() instead.")
 
     def overlapping_others(self, this_ap: int, this_link: int,
                          window_start: int, window_end: int) -> list[ActiveTx]:

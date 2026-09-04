@@ -17,9 +17,11 @@ class ChannelStateRegistry:
         self._by_channel: dict[int, ChannelState] = {}
 
     def register(self, channel_id: int) -> ChannelState:
-        if channel_id not in self._by_channel:
-            self._by_channel[channel_id] = ChannelState(channel_id=channel_id)
-        return self._by_channel[channel_id]
+        cs = self._by_channel.get(channel_id)
+        if cs is None:
+            cs = ChannelState(channel_id=channel_id)
+            self._by_channel[channel_id] = cs
+        return cs
 
     def get(self, channel_id: int) -> ChannelState:
         return self._by_channel[channel_id]

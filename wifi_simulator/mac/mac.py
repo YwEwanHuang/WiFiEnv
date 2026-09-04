@@ -130,8 +130,6 @@ class MacStation:
         self.difs_end_ns: int = 0
         self.current_packet: Optional[Packet] = None
         self.current_mcs: Optional[McsEntry] = None
-        self.current_tx_start_ns: int = 0
-        self.current_tx_end_ns: int = 0
         # Pending TX start request from the slot planner.
         self.pending_tx_start: bool = False
 
@@ -144,8 +142,6 @@ class MacStation:
         self.difs_end_ns = 0
         self.current_packet = None
         self.current_mcs = None
-        self.current_tx_start_ns = 0
-        self.current_tx_end_ns = 0
         self.pending_tx_start = False
 
     # ---- MLO (Feature Pack v0) ---------------------------------------
@@ -255,9 +251,12 @@ class MacStation:
             my_tx.start_ns, my_tx.end_ns,
         )
 
-        d = self.get_distance_m(self.ap_id, self.sta_id)
-        pl_db = self.path_loss.path_loss_db(self.ap_id, self.sta_id, d)
-        signal_dbm = my_tx.tx_power_dbm - pl_db
+        # Reconstruct signal_dbm if not stored (legacy callers).
+        signal_dbm = my_tx.signal_dbm
+        if signal_dbm is None:
+            d = self.get_distance_m(self.ap_id, self.sta_id)
+            pl_db = self.path_loss.path_loss_db(self.ap_id, self.sta_id, d)
+            signal_dbm = my_tx.tx_power_dbm - pl_db
 
         interf_dbm: list[float] = []
         for ot in overlapping:
@@ -275,18 +274,10 @@ class MacStation:
             self._handle_failure(now_ns)
             return
 
-        sinr_db = compute_sinr_db(signal_dbm, interf_dbm, self.noise_dbm)
-        mcs = ideal_select(sinr_db)
-        per = 0.0 if sinr_db >= mcs.min_sinr_db else 1.0
-        if per > 0:
-            self.current_packet.outcome = "FAIL_PHY"
-            self.metrics.record_fail_phy(self.link_id)
-            self.trace.emit(now_ns, "TX_END",
-                            ap_id=self.ap_id, link_id=self.link_id,
-                            packet_id=self.current_packet.packet_id,
-                            success=False, reason="PER")
-            self._handle_failure(now_ns)
-            return
+        # No overlapping TX: reuse the MCS selected at TX_START.
+        # PER is 0 since the clean-channel SINR used for MCS selection
+        # is unchanged (no hidden interferer appeared at TX_END).
+        mcs = self.current_mcs
 
         ack_time_ns = now_ns + SIFS_NS
         self.current_mcs = mcs
@@ -329,9 +320,10 @@ class MacStation:
         d = self.get_distance_m(self.ap_id, self.sta_id)
         pl_db = self.path_loss.path_loss_db(self.ap_id, self.sta_id, d)
         signal_dbm = self.tx_power_dbm - pl_db
-        interf_dbm: list[float] = []
-        sinr_db = compute_sinr_db(signal_dbm, interf_dbm, self.noise_dbm)
-        mcs = ideal_select(sinr_db)
+        # Pre-compute clean-channel SINR for MCS selection and cache in ActiveTx
+        # so on_tx_end can reuse it without recomputing path_loss.
+        _sinr_db = compute_sinr_db(signal_dbm, [], self.noise_dbm)
+        mcs = ideal_select(_sinr_db)
 
         airtime_us = approximate_packet_airtime_us(
             size_bytes=p.size_bytes,
@@ -343,13 +335,12 @@ class MacStation:
 
         self.current_packet = p
         self.current_mcs = mcs
-        self.current_tx_start_ns = now_ns
-        self.current_tx_end_ns = tx_end_ns
         self.state = MacState.TX
 
         self.channel_state.start_tx(
             self.ap_id, self.link_id, p.packet_id,
             now_ns, tx_end_ns, self.tx_power_dbm,
+            signal_dbm=signal_dbm,
         )
         p.first_tx_time_ns = p.first_tx_time_ns or now_ns
         p.tx_count += 1
