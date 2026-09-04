@@ -83,6 +83,7 @@ class MetricsCollector:
         for lid, lm in self._per_link.items():
             per_link[lid] = {
                 "success": lm.success_count,
+                "success_bytes": lm.success_bytes,
                 "collision": lm.collision_count,
                 "fail_phy": lm.fail_phy_count,
                 "fail_no_ack": lm.fail_no_ack_count,

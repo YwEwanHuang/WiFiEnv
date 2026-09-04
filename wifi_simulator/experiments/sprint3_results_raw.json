@@ -1,0 +1,355 @@
+{
+  "DQN_DQN_DQN": {
+    "legacy": [
+      {
+        "seed": 6,
+        "model": "DQN_DQN_DQN",
+        "throughput_mbps": 471.5253712808871,
+        "reward": 424.7856874486883,
+        "queue_len_mean": 4590.7881509975305,
+        "queue_len_final": 628.7156792919811,
+        "total_drained_packets": 2121864.1707639927
+      },
+      {
+        "seed": 7,
+        "model": "DQN_DQN_DQN",
+        "throughput_mbps": 489.2134395174599,
+        "reward": 439.06743867404265,
+        "queue_len_mean": 5081.798136245929,
+        "queue_len_final": 4257.503743365596,
+        "total_drained_packets": 2201460.4778285706
+      },
+      {
+        "seed": 8,
+        "model": "DQN_DQN_DQN",
+        "throughput_mbps": 485.0748170899602,
+        "reward": 434.25128499742607,
+        "queue_len_mean": 5102.261773048042,
+        "queue_len_final": 5032.699582150303,
+        "total_drained_packets": 2182836.67690482
+      },
+      {
+        "seed": 9,
+        "model": "DQN_DQN_DQN",
+        "throughput_mbps": 472.09085740502746,
+        "reward": 424.6555618288757,
+        "queue_len_mean": 4751.318782331873,
+        "queue_len_final": 8425.810502358363,
+        "total_drained_packets": 2124408.8583226237
+      },
+      {
+        "seed": 10,
+        "model": "DQN_DQN_DQN",
+        "throughput_mbps": 481.52855486361375,
+        "reward": 436.79617701417027,
+        "queue_len_mean": 4356.293709253163,
+        "queue_len_final": 6060.156690058378,
+        "total_drained_packets": 2166878.4968862627
+      }
+    ],
+    "research": [
+      {
+        "seed": 6,
+        "model": "DQN_DQN_DQN",
+        "total_steps": 31,
+        "throughput_mbps": 50.20903225806451,
+        "throughput_mbps_std": 9.862645322913695,
+        "reward": -35.930645161290336,
+        "queue_len_mean": 8613.967741935483,
+        "queue_len_final": 16137,
+        "collisions_mean": 0.3225806451612903,
+        "retries_mean": 0.3225806451612903,
+        "drops_mean": 0,
+        "latency_mean_us": 38757.27184220825,
+        "latency_p95_us": 71104.553
+      },
+      {
+        "seed": 7,
+        "model": "DQN_DQN_DQN",
+        "total_steps": 32,
+        "throughput_mbps": 51.45599999999999,
+        "throughput_mbps_std": 8.700598956022992,
+        "reward": -35.88243750000001,
+        "queue_len_mean": 8733.84375,
+        "queue_len_final": 16421,
+        "collisions_mean": 0.15625,
+        "retries_mean": 0.15625,
+        "drops_mean": 0,
+        "latency_mean_us": 39646.66980766391,
+        "latency_p95_us": 73384.51675
+      },
+      {
+        "seed": 8,
+        "model": "DQN_DQN_DQN",
+        "total_steps": 31,
+        "throughput_mbps": 49.68051612903225,
+        "throughput_mbps_std": 8.509561037918731,
+        "reward": -36.000774193548395,
+        "queue_len_mean": 8568.129032258064,
+        "queue_len_final": 16244,
+        "collisions_mean": 0.16129032258064516,
+        "retries_mean": 0.16129032258064516,
+        "drops_mean": 0,
+        "latency_mean_us": 39230.06751353715,
+        "latency_p95_us": 71363.74112903226
+      },
+      {
+        "seed": 9,
+        "model": "DQN_DQN_DQN",
+        "total_steps": 31,
+        "throughput_mbps": 52.8516129032258,
+        "throughput_mbps_std": 6.963588603957106,
+        "reward": -33.27967741935485,
+        "queue_len_mean": 8613.129032258064,
+        "queue_len_final": 16205,
+        "collisions_mean": 0.0967741935483871,
+        "retries_mean": 0.0967741935483871,
+        "drops_mean": 0,
+        "latency_mean_us": 38716.035743685046,
+        "latency_p95_us": 71093.96619354839
+      },
+      {
+        "seed": 10,
+        "model": "DQN_DQN_DQN",
+        "total_steps": 31,
+        "throughput_mbps": 51.39819354838709,
+        "throughput_mbps_std": 8.515918574134579,
+        "reward": -33.814709677419366,
+        "queue_len_mean": 8521.290322580646,
+        "queue_len_final": 16013,
+        "collisions_mean": 0.16129032258064516,
+        "retries_mean": 0.16129032258064516,
+        "drops_mean": 0,
+        "latency_mean_us": 38531.47943927896,
+        "latency_p95_us": 71017.08867741935
+      }
+    ],
+    "summary": {
+      "model": "DQN_DQN_DQN",
+      "legacy": {
+        "throughput_mbps": {
+          "mean": 479.8866080313897,
+          "std": 7.8626855467966035,
+          "min": 471.5253712808871,
+          "max": 489.2134395174599
+        },
+        "reward": {
+          "mean": 431.9112299926406,
+          "std": 6.781739536591864,
+          "min": 424.6555618288757,
+          "max": 439.06743867404265
+        },
+        "queue_len_mean": {
+          "mean": 4776.492110375308,
+          "std": 320.55576575293105,
+          "min": 4356.293709253163,
+          "max": 5102.261773048042
+        }
+      },
+      "research": {
+        "throughput_mbps": {
+          "mean": 51.119070967741926,
+          "std": 1.2339714971486313,
+          "min": 49.68051612903225,
+          "max": 52.8516129032258
+        },
+        "reward": {
+          "mean": -34.98164879032259,
+          "std": 1.3237337760960097,
+          "min": -36.000774193548395,
+          "max": -33.27967741935485
+        },
+        "queue_len_mean": {
+          "mean": 8610.071975806452,
+          "std": 79.03380153122716,
+          "min": 8521.290322580646,
+          "max": 8733.84375
+        },
+        "collisions_mean": {
+          "mean": 0.17963709677419354,
+          "std": 0.08443826635277284,
+          "min": 0.0967741935483871,
+          "max": 0.3225806451612903
+        },
+        "retries_mean": {
+          "mean": 0.17963709677419354,
+          "std": 0.08443826635277284,
+          "min": 0.0967741935483871,
+          "max": 0.3225806451612903
+        },
+        "drops_mean": {
+          "mean": 0,
+          "std": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "latency_mean_us": {
+          "mean": 38976.30486927466,
+          "std": 454.7993453427087,
+          "min": 38531.47943927896,
+          "max": 39646.66980766391
+        },
+        "latency_p95_us": {
+          "mean": 71592.77315,
+          "std": 1010.1213666449335,
+          "min": 71017.08867741935,
+          "max": 73384.51675
+        }
+      }
+    }
+  },
+  "DQN_DDPG_DQN": {
+    "legacy": [],
+    "research": [],
+    "summary": {
+      "model": "DQN_DDPG_DQN",
+      "legacy": {
+        "throughput_mbps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "reward": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "queue_len_mean": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "research": {
+        "throughput_mbps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "reward": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "queue_len_mean": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "collisions_mean": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "retries_mean": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "drops_mean": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "latency_mean_us": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "latency_p95_us": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      }
+    }
+  },
+  "DQN_DDPG_DDPG": {
+    "legacy": [],
+    "research": [],
+    "summary": {
+      "model": "DQN_DDPG_DDPG",
+      "legacy": {
+        "throughput_mbps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "reward": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "queue_len_mean": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "research": {
+        "throughput_mbps": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "reward": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "queue_len_mean": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "collisions_mean": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "retries_mean": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "drops_mean": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "latency_mean_us": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "latency_p95_us": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      }
+    }
+  }
+}

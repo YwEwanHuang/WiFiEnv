@@ -21,6 +21,10 @@ multi-BSS shape but collapse STAs to 1 per AP for simplicity; full 4-STAs-
 per-AP support is on-demand per paper). The interferer APs are full
 MacStations running CSMA/CA, so they do NOT transmit at pt_max always-on
 (this is the third Sprint 1 abstraction fix).
+
+AP0 gets ONE link per available channel (0, 1, 2) so the L1 agent can
+switch the AP to any of those channels. Link IDs: 0=AP0/ch0, 1=AP0/ch1,
+2=AP0/ch2, then 3=AP1/ch0, 4=AP2/ch1, 5=AP3/ch2.
 """
 from __future__ import annotations
 
@@ -44,34 +48,40 @@ def make_aps(lambda_pps: float = 500.0, target_channel: int = 0) -> list[ApStati
     interferer APs (1, 2, 3) are assigned to channels 0, 1, 2 respectively
     (matching legacy `used_channel`). The target AP (AP0) starts on
     `target_channel`.
+
+    AP0 gets ONE link per channel (0, 1, 2) so the L1 agent can switch
+    to any channel.  Interferer APs have ONE link each on their fixed
+    channel.
     """
     aps = []
-    # AP0 (target) — start on `target_channel`
+    # AP0 (target): one link per available channel (ch0, ch1, ch2).
+    # link_ids 0, 1, 2. All receive traffic; L1 picks the active channel.
+    for ch in range(3):
+        aps.append(ApStation(
+            ap_id=0, sta_id=10 + ch,
+            pos_ap=AP_POS[0], pos_sta=sta_pos_for_ap(AP_POS[0])[0],
+            link_id=ch, channel_id=ch,
+            tx_power_dbm=20.0, lambda_pps=lambda_pps, size_bytes=2304,
+        ))
+    # AP1 (interferer) on channel 0; link_id=3
     aps.append(ApStation(
-        ap_id=0, sta_id=10,
-        pos_ap=AP_POS[0], pos_sta=sta_pos_for_ap(AP_POS[0])[0],
-        link_id=0, channel_id=target_channel,
-        tx_power_dbm=20.0, lambda_pps=lambda_pps, size_bytes=2304,
-    ))
-    # AP1 (interferer) on channel 0
-    aps.append(ApStation(
-        ap_id=1, sta_id=11,
+        ap_id=1, sta_id=13,
         pos_ap=AP_POS[1], pos_sta=sta_pos_for_ap(AP_POS[1])[0],
-        link_id=1, channel_id=0,
+        link_id=3, channel_id=0,
         tx_power_dbm=20.0, lambda_pps=lambda_pps, size_bytes=2304,
     ))
-    # AP2 (interferer) on channel 1
+    # AP2 (interferer) on channel 1; link_id=4
     aps.append(ApStation(
-        ap_id=2, sta_id=12,
+        ap_id=2, sta_id=14,
         pos_ap=AP_POS[2], pos_sta=sta_pos_for_ap(AP_POS[2])[0],
-        link_id=2, channel_id=1,
+        link_id=4, channel_id=1,
         tx_power_dbm=20.0, lambda_pps=lambda_pps, size_bytes=2304,
     ))
-    # AP3 (interferer) on channel 2
+    # AP3 (interferer) on channel 2; link_id=5
     aps.append(ApStation(
-        ap_id=3, sta_id=13,
+        ap_id=3, sta_id=15,
         pos_ap=AP_POS[3], pos_sta=sta_pos_for_ap(AP_POS[3])[0],
-        link_id=3, channel_id=2,
+        link_id=5, channel_id=2,
         tx_power_dbm=20.0, lambda_pps=lambda_pps, size_bytes=2304,
     ))
     return aps

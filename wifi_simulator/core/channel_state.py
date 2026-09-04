@@ -29,6 +29,8 @@ class ChannelState:
     def __init__(self, channel_id: int) -> None:
         self.channel_id = channel_id
         self._active: list[ActiveTx] = []
+        # Cumulative busy ns of completed TXs (used for utilization).
+        self._busy_ns_total: int = 0
 
     def start_tx(self, ap_id: int, link_id: int, packet_id: int,
                  start_ns: int, end_ns: int, tx_power_dbm: float) -> None:
@@ -52,6 +54,8 @@ class ChannelState:
     def finish_tx(self, ap_id: int, packet_id: int) -> ActiveTx | None:
         for i, at in enumerate(self._active):
             if at.ap_id == ap_id and at.packet_id == packet_id:
+                # Accumulate this TX's busy duration before removing.
+                self._busy_ns_total += max(0, at.end_ns - at.start_ns)
                 return self._active.pop(i)
         return None
 
@@ -101,3 +105,15 @@ class ChannelState:
     def prune_before(self, t_ns: int) -> None:
         """Drop TXs that ended before t_ns to keep the active list short."""
         self._active = [at for at in self._active if at.end_ns >= t_ns]
+
+    def utilization(self, sim_duration_ns: int, now_ns: int | None = None) -> float:
+        """Channel utilization in [0, 1]: fraction of sim time the channel
+        was busy with TXs. `now_ns` is the simulation clock used to
+        account for any TX still in flight at sim end."""
+        if sim_duration_ns <= 0:
+            return 0.0
+        busy = self._busy_ns_total
+        if now_ns is not None:
+            for at in self._active:
+                busy += max(0, now_ns - at.start_ns)
+        return busy / sim_duration_ns

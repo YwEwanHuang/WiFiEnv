@@ -1,0 +1,145 @@
+{
+  "m1_str": {
+    "aggregate_mbps": 129.7502208,
+    "success": 35197,
+    "drops": 0,
+    "per_link": {
+      "1": {
+        "success": 17589,
+        "success_bytes": 40525056,
+        "collision": 0,
+        "fail_phy": 0,
+        "fail_no_ack": 0,
+        "retry": 0,
+        "drop": 0,
+        "tx_attempts": 17590,
+        "throughput_bps": 64840089.6
+      },
+      "0": {
+        "success": 17608,
+        "success_bytes": 40568832,
+        "collision": 0,
+        "fail_phy": 0,
+        "fail_no_ack": 0,
+        "retry": 0,
+        "drop": 0,
+        "tx_attempts": 17609,
+        "throughput_bps": 64910131.2
+      }
+    },
+    "tx_starts": {
+      "0": 17609,
+      "1": 17590
+    },
+    "simultaneous_tx_pairs": 30949,
+    "queue_at_end": {
+      "0": 232254,
+      "1": 232273
+    },
+    "queue_arrivals": {
+      "0": 249862,
+      "1": 249862
+    },
+    "latency_mean_us": 2325534.3941789926,
+    "latency_p95_us": 4415894.6,
+    "conservation": {
+      "arrivals": 499724,
+      "success": 35197,
+      "drop": 0,
+      "queued_at_end": 464527,
+      "inflight": 2,
+      "closed_total": 499724,
+      "conservation_holds": true,
+      "gap": 0
+    }
+  },
+  "experimental_single_radio": {
+    "aggregate_mbps": 64.8327168,
+    "success": 17587,
+    "drops": 0,
+    "per_link": {
+      "0": {
+        "success": 17587,
+        "success_bytes": 40520448,
+        "collision": 0,
+        "fail_phy": 0,
+        "fail_no_ack": 0,
+        "retry": 0,
+        "drop": 0,
+        "tx_attempts": 17588,
+        "throughput_bps": 64832716.8
+      }
+    },
+    "tx_starts": {
+      "0": 17588,
+      "1": 0
+    },
+    "simultaneous_tx_pairs": 0,
+    "queue_at_end": {
+      "0": 232269,
+      "1": 249855
+    },
+    "conservation": {
+      "arrivals": 499711,
+      "success": 17587,
+      "drop": 0,
+      "queued_at_end": 482124,
+      "inflight": 1,
+      "closed_total": 499711,
+      "conservation_holds": true,
+      "gap": 0
+    }
+  },
+  "fixed_steering_str_smoke": {
+    "aggregate_mbps": 64.8327168,
+    "per_link": {
+      "0": {
+        "success": 17587,
+        "success_bytes": 40520448,
+        "collision": 0,
+        "fail_phy": 0,
+        "fail_no_ack": 0,
+        "retry": 0,
+        "drop": 0,
+        "tx_attempts": 17588,
+        "throughput_bps": 64832716.8
+      }
+    }
+  },
+  "reproducibility": {
+    "round_robin-STR": true,
+    "round_robin-single_radio": true
+  },
+  "frozen_core_conservation": {
+    "A": {
+      "arrivals": 499711,
+      "success": 17587,
+      "drop": 0,
+      "queued_at_end": 482124,
+      "inflight": 1,
+      "closed_total": 499711,
+      "conservation_holds": true,
+      "gap": 0
+    },
+    "B": {
+      "arrivals": 999900,
+      "success": 19244,
+      "drop": 0,
+      "queued_at_end": 980656,
+      "inflight": 1,
+      "closed_total": 999900,
+      "conservation_holds": true,
+      "gap": 0
+    },
+    "C": {
+      "arrivals": 3003605,
+      "success": 56381,
+      "drop": 0,
+      "queued_at_end": 2947224,
+      "inflight": 2,
+      "closed_total": 3003605,
+      "conservation_holds": true,
+      "gap": 0
+    }
+  }
+}

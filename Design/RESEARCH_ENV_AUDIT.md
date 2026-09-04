@@ -119,7 +119,7 @@ list of features, the active research questions are:
    does the trade-off change with airtime + collisions + MCS?
 3. **MARL / multi-agent** convergence on (1) and (2).
 4. **Multi-BSS overlapping** with N_AP = 5–20, N_STA = 50–200.
-5. **MLO** (link selection, traffic steering, basic STR/NSTR) — **Feature Pack**.
+5. **MLO** (link selection, traffic steering, basic STR) — **Feature Pack** (v0 shipped; `single_radio` demo only — NOT IEEE NSTR).
 6. **Comparison vs ns-3** for a small set of "headline" scenarios — **optional**.
 
 These are the *fidelity* targets for Core; everything else is on-demand.

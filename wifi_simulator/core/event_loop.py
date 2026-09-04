@@ -40,6 +40,12 @@ class EventLoop:
     def has_events(self) -> bool:
         return bool(self._pq)
 
+    def clear(self) -> None:
+        """Clear all pending events and reset the clock."""
+        self._pq.clear()
+        self._seq = 0
+        self.now_ns = 0
+
     def pop(self) -> Event:
         ev = heapq.heappop(self._pq)
         self.now_ns = ev.time_ns

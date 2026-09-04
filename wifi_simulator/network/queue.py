@@ -47,6 +47,9 @@ class PacketQueue:
         self.link_id = link_id
         self._q: Deque[Packet] = deque()
         self.next_id: int = 0
+        # Total number of packets ever appended to this queue (lifetime).
+        # Used by the conservation check: arrivals = success + drop + queued.
+        self.arrival_count: int = 0
 
     def enqueue(self, src: int, dst: int, size_bytes: int, now_ns: int) -> Packet:
         pid = self.next_id
@@ -60,6 +63,7 @@ class PacketQueue:
             enq_time_ns=now_ns,
         )
         self._q.append(p)
+        self.arrival_count += 1
         return p
 
     def peek(self) -> Optional[Packet]:
@@ -67,6 +71,9 @@ class PacketQueue:
 
     def pop(self) -> Packet:
         return self._q.popleft()
+
+    def clear(self) -> None:
+        self._q.clear()
 
     def __len__(self) -> int:
         return len(self._q)

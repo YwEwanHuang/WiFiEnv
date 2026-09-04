@@ -106,7 +106,7 @@ For example:
 
 ```
 Core
-+ MLO              (link selection, traffic steering, STR / NSTR)
++ MLO              (link selection, traffic steering, STR)
 
 Core
 + Spatial Reuse    (SR parameter, relative CCA tables)
@@ -118,26 +118,31 @@ Core
 MLO is the first Feature Pack to be designed but **not** the first to be
 implemented.
 
-**MLO Feature Pack scope (v0, on demand):**
+**MLO Feature Pack scope (shipped v0):**
 
-- MLD with N = 1..4 links.
+- Two-link MLD with independent per-link CSMA/CA.
 - Per-link channel, per-link MAC, per-link queue, per-link CCA.
-- Basic link selection: `controller.select_link(mld, packet) -> link_id`.
-- Basic traffic steering: round-robin or learned policy.
-- **STR** (Simultaneous TX/RX) — links operate independently.
-- **NSTR** (Non-STR) — one TX blocks all other RX.
-- Default steering policy = round-robin over idle links.
+- Per-packet steering: `fixed` (all packets to one link) or
+  `round_robin`.
+- **STR** — links run independent CSMA/CA on each channel. Formal
+  capability.
+- **Experimental `single_radio` mode** — abstract mutual-exclusion gate
+  at the MLD traffic layer. NOT IEEE 802.11be NSTR. Documented but not
+  counted in the formal v0 contract.
 
 **MLO Feature Pack scope (NOT in v0, deferred):**
 
+- IEEE 802.11be NSTR (link-pair NAV, restricted TWT, channel access
+  sharing rules).
 - EMLSR / restricted TWT.
 - Advanced MLO synchronization and link-switching latency.
 - Full 802.11be MLO feature set.
 
 If the existing Core architecture already exposes per-link MAC + per-link
 queue + per-link CCA (it does — C9 above), then MLO slots in as a thin
-adapter layer in `features/mlo.py` without any Core change. No Core file is
-modified to support MLO.
+adapter layer in `features/mlo.py`. The Core was frozen before MLO v0
+landed; MLO v0 made the minimum Core integration changes documented in
+`MLO_V0_REPORT.md` §2.2.
 
 ### 3.2 Other Feature Packs (deferred)
 
@@ -214,7 +219,7 @@ publication readiness, not Core; etc.
 |--------|-------|
 | **Sprint 1** | Core MVP subset: C1 (event loop) + C3 (collision / ACK / retry) + C6 (queue) + C5 (basic airtime) + C4 (basic path loss / SINR) + C2 (CSMA/CA: DIFS / backoff / freeze / TX / ACK / retry) + C10 (throughput + latency + collision / retry metrics) + research infrastructure B1 (seeded RNG), B2 (deterministic event log), B3 (event trace), B4 (config loader) minimum. **Single AP / STA pair, one channel**. No controller yet. See Sprint 1 report for validation. |
 | **Sprint 2** | Multi-BSS + realistic interferers (C7, C8) + Controller with per-link granularity (C9) + decision_interval. Legacy Adapter (B6). First Legacy-vs-Research experiment. |
-| **Sprint 3+** | MLO Feature Pack (per §3.1). Other Feature Packs on demand. |
+| **Sprint 3+** | MLO Feature Pack v0 (per §3.1). Other Feature Packs on demand. MLO v0 was implemented and frozen; Sprint 3 here refers to a hypothetical extension slot, not active work. |
 
 ---
 

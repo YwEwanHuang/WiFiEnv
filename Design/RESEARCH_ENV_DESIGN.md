@@ -64,7 +64,7 @@ wifi_simulator/
         queue.py            per-AP / per-link queue with packet identities
         traffic.py          Poisson / CBR / on-off / trace-driven
     features/              Feature Packs — Core remains unaware of any feature
-        mlo.py              MLD model: links, steering, STR / NSTR  (FEATURE PACK)
+        mlo.py              MLD model: links, steering, STR (FEATURE PACK v0)
     controllers/           algorithm-agnostic Controller API
         controller.py       the only thing the algorithm sees
         legacy_adapter.py   wraps Controller for L1/L2/L3 hierarchical agent
@@ -439,7 +439,7 @@ class MLD:
     ap_id: int
     sta_id: int
     links: list[Link]     # 1..4 links, each on its own channel
-    steering_policy: str  # "always_str", "nstr", "manual"
+    steering_policy: str  # "fixed" or "round_robin"
 ```
 
 Each link has its own MAC state machine, queue, and CCA. The MLD has a
@@ -447,21 +447,25 @@ per-packet "current link" assignment written by
 `controller.select_link(packet)`.
 
 - **STR (Simultaneous TX/RX)**: links can be TX and RX at the same time; no
-  cross-link coupling. Default policy.
-- **NSTR (Non-STR)**: while any link is transmitting, all other links
-  suspend RX for the duration. Cross-link coupling is implemented as a
-  single shared "self-interference" mask.
-- `controller.select_link(packet) → link_id`. Default = round-robin over
-  idle links.
+  cross-link coupling. Default policy and the formal MLO v0 capability.
 
-### 7.2 MLO is deferred from Sprint 1
+- **`single_radio` (experimental simplified mode)**: while any link is
+  active, peer link's MAC is not woken by `MldTraffic`. This is **NOT**
+  IEEE 802.11be NSTR link-pair behaviour — it is an abstract single-radio
+  / mutual-exclusion gate shipped alongside v0 for baseline reference.
+  It causes starvation of the peer link under saturation. Do not cite
+  as NSTR in research output.
 
-The first Core release (Sprint 1) ships **without** MLO. MLO Feature Pack is
-scheduled for Sprint 3 or later. This is intentional — Core must support
-channel-selection / power / CCA / MARL research without MLO.
+- `controller.select_link(packet) → link_id`. Default = round-robin.
 
-EMLSR / link switching latency / restricted TWT — **not in MLO v0**; on-demand
-per paper.
+### 7.2 MLO v0 status
+
+MLO Feature Pack v0 is shipped: two-link MLD, independent per-link
+CSMA/CA, fixed / round-robin steering, STR. The Core's first release
+(Sprint 1) shipped without MLO; v0 was added after Core was frozen.
+
+EMLSR / link switching latency / restricted TWT / IEEE NSTR — **not in
+MLO v0**; on-demand per paper.
 
 ---
 
@@ -578,7 +582,7 @@ topology, traffic, controllers, metrics. Default scenarios:
 - `apartment_walls` (legacy `Apartment` config) — Sprint 2+.
 - `ring_of_aps` (5–20 APs, regular topology, hidden-node stress test) —
   Sprint 2+.
-- `mld_two_link` (1 MLD, 2 links, 2 channels) — MLO Feature Pack, Sprint 3+.
+- `mld_two_link` (1 MLD, 2 links, 2 channels) — shipped as `m1_two_link_str.py`.
 
 Each scenario is a single Python file under `scenarios/`.
 
@@ -590,7 +594,7 @@ Each scenario is a single Python file under `scenarios/`.
 |-----------|:-----:|---------------|
 | OFDMA / RU allocation | Feature Pack | OFDMA scheduler paper |
 | multi-RU, MU-MIMO | Feature Pack | multi-user scheduling paper |
-| MLO (link selection, STR/NSTR, traffic steering) | Feature Pack (`features/mlo.py`) | MLO paper |
+| MLO (link selection, STR, traffic steering) | Feature Pack (`features/mlo.py`) | MLO paper |
 | 320 MHz, channel puncturing | on-demand | puncturing study |
 | BSS Coloring, OBSS_PD | Feature Pack | OBSS_PD study |
 | Spatial Reuse | Feature Pack | SR parameter paper |

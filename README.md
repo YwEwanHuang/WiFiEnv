@@ -1,126 +1,160 @@
-# WiFiEnv — Research-Grade Wi-Fi Environment
+# WiFiEnv — Research Wi-Fi Environment
 
-A research-grade Wi-Fi simulator intended for fast Python iteration on
-DRL/MARL algorithms with realistic CSMA/CA + packet-level PHY.
+A research-grade Wi-Fi **discrete-event simulation environment** for fast
+Python iteration on **channel selection, Tx power control, CCA tuning,
+multi-BSS, and MLO (STR)** algorithms. Written for researchers who need
+realistic CSMA/CA + packet-level PHY without ns-3.
 
-It is **not** an ns-3 clone and not a full IEEE 802.11 stack. Its goal
-is to fix the abstractions in the legacy Project_3 environment that
-most distort algorithm conclusions, while keeping the implementation
-small enough to read end-to-end.
+> **Not** an ns-3 clone. **Not** a full IEEE 802.11 stack.
+> **Core is frozen at v1.0** — see `V1_RELEASE_REPORT.md` for the
+> canonical baseline numbers and the freeze checklist.
 
-## Design philosophy
+---
 
-> Research fidelity > protocol completeness.
-> Experiment velocity > software architecture completeness.
-> Minimum sufficient fidelity > engineering realism.
-> Paper-driven feature development > roadmap-driven feature development.
+## Current capability (v1.0)
 
-The simulator was developed across three stages:
+What's in the box **today**:
 
-1. **Sprint 1** — minimum Core: event loop, CSMA/CA, packet-level PHY,
-   1 AP/STA, 2-AP contention. See `SPRINT1_REPORT.md`.
-2. **Sprint 2** — multi-BSS, multi-channel, per-link Controller, Legacy
-   Adapter. See `SPRINT2_REPORT.md`.
-3. **Sprint 2.5** — Experiment Comparability Gate. Legacy-vs-Research
-   comparison made metric-comparable; mechanism ablation identifies
-   dominant divergence. See `SPRINT2_REPORT.md` §"Experiment Comparability
-   Gate".
+- Discrete-event timing (ns / 9 µs slot)
+- CSMA/CA: DIFS / backoff / freeze+resume / TX / ACK / retry
+- Collision, ACK failure, retry, drop-after-`retry_limit`
+- Packet-level PHY with cached per-link shadowing (linear-domain SINR)
+- Ideal MCS Selection + simplified PER + approximate packet airtime
+- Per-(AP, link) FIFO queue with packet identities
+- Realistic interferer traffic (interferers also run CSMA/CA, never always-on)
+- Multi-BSS, multi-channel (≥ 4 APs across ≥ 3 channels)
+- Per-link Controller (channel / Tx power / CCA at `link_id` granularity)
+- `ScriptedRunner` for fixed-parameter per-epoch driving (no RL required)
+- Metrics: throughput, latency mean/p50/p95, queue, collision, retry,
+  drop, **per-channel utilization**, per-link breakdown
+- Deterministic reproducibility (same scenario + seed + config → bit-identical)
+- **MLO v0 Feature Pack**: two-link MLD, independent per-link CSMA/CA,
+  fixed / round-robin steering, STR mode
 
-## Repository layout
+What's **explicitly out of scope** (deferred to paper-driven Feature Packs):
 
-```
-WiFiEnv/
-├── Design/                    design documents (audit, design, backlog, validation)
-├── SPRINT1_REPORT.md          Sprint 1 implementation + Phase 0 hotfix
-├── SPRINT2_REPORT.md          Sprint 2 + 2.5 implementation, experiment, gate
-└── wifi_simulator/
-    ├── core/                  event loop, RNG, channel state, simulator
-    │   ├── event_loop.py      discrete-event engine (ns resolution)
-    │   ├── rng.py             single seeded numpy Generator
-    │   ├── channel_state.py   per-channel active-TX accounting
-    │   ├── channel_registry.py  multi-BSS channel registry
-    │   └── simulator.py       top-level driver
-    ├── mac/                   CSMA/CA + per-link state machine
-    │   ├── timing.py          IEEE 802.11-2016 §10.3.3 constants
-    │   ├── backoff.py         CW_r = min((CW_min+1)*2^r - 1, CW_max)
-    │   └── mac.py             DIFS / backoff / freeze+resume / TX / ACK / retry
-    ├── phy/                   packet-level PHY abstraction
-    │   ├── path_loss.py       freq_loss + alpha*log10(d) + cached per-link shadowing
-    │   ├── sinr.py            LINEAR-DOMAIN interference sum (no dBm arithmetic)
-    │   ├── mcs.py             HE-SU 20 MHz MCS 0..11 + Ideal MCS Selection
-    │   └── airtime.py         Approximate Packet Airtime = preamble + payload_us
-    ├── network/
-    │   ├── queue.py           per-(AP, link) FIFO with packet identities
-    │   └── traffic.py         Poisson arrivals
-    ├── metrics/
-    │   ├── collector.py       throughput, latency, collision, retry, drop
-    │   └── events.py          event trace (CCA, BACKOFF, TX, COLLISION, ACK, …)
-    ├── controllers/
-    │   ├── controller.py      per-link / per-channel API
-    │   └── legacy_adapter.py  L1/L2/L3 → Controller mapping
-    ├── scenarios/             scenario_a (1 AP), scenario_b (2 AP), normal_4ap
-    ├── experiments/           legacy_vs_research_normal vertical slice
-    └── tests/                 sanity + CSMA/CCA + Sprint 1 gate
-```
+| Deferred | Reason |
+|---|---|
+| IEEE 802.11be NSTR / EMLSR | Future MLO paper |
+| OFDMA / MU-MIMO / 320 MHz / puncturing | OFDMA paper |
+| BSS Coloring / OBSS_PD / Spatial Reuse (SR) | SR paper |
+| EDCA / QoS AC / Block ACK / A-MPDU / A-MSDU | QoS paper |
+| Capture effect / spatial-correlated shadowing | Capture paper |
+| Mobility / TCP / IP stack | Mobility paper |
+| 802.11bn (UHR) / rate adaptation / management plane | Not requested |
+| RL agent / Gymnasium wrapper / ns-3 integration | Out of env scope |
+
+The Core is **not** modified for hypothetical future needs; new mechanisms
+arrive only as Feature Packs triggered by an explicit paper requirement.
+
+---
 
 ## Quick start
 
 ```bash
-cd WiFiEnv
-python -m wifi_simulator.tests.test_sprint1        # 16 sanity + CSMA tests
-python -m wifi_simulator.scenarios.scenario_a        # single-AP saturated
-python -m wifi_simulator.scenarios.scenario_b        # 2-AP contention
-python -m wifi_simulator.scenarios.normal_4ap       # legacy Normal scenario mirror
+# Core scenarios (Core v1.0)
+python -m wifi_simulator.scenarios.scenario_a          # 1 AP, 1 STA, saturated
+python -m wifi_simulator.scenarios.scenario_b          # 2 APs, same channel, saturated
+python -m wifi_simulator.scenarios.scenario_c          # 4 APs, 3 channels, multi-BSS
+
+# MLO v0 Feature Pack
+python -m wifi_simulator.scenarios.m1_two_link_str     # 1 MLD, 2 links, STR (formal v0)
+
+# Regression tests
+python -m wifi_simulator.tests.test_primitives         # 11 primitive sanity tests
+python -m wifi_simulator.tests.test_freeze_resume      # 5 CSMA / CCA tests
+python -m wifi_simulator.tests.test_sprint1            # integration: A + B end-to-end
+python -m wifi_simulator.experiments.mlo_v0_validation # MLO v0 + packet conservation
 ```
 
-## Running the Legacy-vs-Research experiment
+All commands run without RL and print a JSON summary.
 
-The experiment in `wifi_simulator/experiments/legacy_vs_research_normal.py`
-compares the legacy Project_3 env with the new env on the same scenario.
-It needs the legacy Project_3 code at a known path:
+---
 
-```bash
-export LEGACY_PROJECT3_ROOT=/path/to/legacy/Project_3   # contains env.py
-python -m wifi_simulator.experiments.legacy_vs_research_normal
+## Minimal Python example
+
+```python
+from wifi_simulator.core.simulator import ApStation, Simulator
+
+sim = Simulator(
+    seed=2024,                       # deterministic
+    duration_s=5.0,                  # simulation duration (seconds)
+    aps=[
+        ApStation(
+            ap_id=0, sta_id=10,
+            pos_ap=(0.0, 0.0),        # AP position (x, y) in meters
+            pos_sta=(10.0, 0.0),      # STA position (x, y) in meters
+            link_id=0, channel_id=0,  # one link on channel 0
+            tx_power_dbm=18.0,        # transmit power
+            lambda_pps=100000.0,      # Poisson arrival rate (packets/sec)
+            size_bytes=2304,          # payload size per packet
+        ),
+    ],
+)
+result = sim.run()
+
+print(f"throughput  = {result['total_throughput_bps']/1e6:.2f} Mbps")
+print(f"success     = {result['total_success_packets']}")
+print(f"drops       = {result['total_drop_packets']}")
+print(f"latency p95 = {result['latency_p95_us']:.1f} µs")
+print(f"utilization = {result['channel_utilization']}")
+print(f"per_link    = {result['per_link']}")
 ```
 
-If `LEGACY_PROJECT3_ROOT` is not set, the default is
-`/Users/yiwei/Desktop/Project_3`. The legacy code is **not** part of
-this repository; it lives separately in the user's legacy Project_3
-checkout.
+`result` is a `dict` with the keys below.
 
-The experiment runs three conditions × 5 seeds:
-- **E0** — legacy Project_3 (always-on interferers, Shannon capacity)
-- **E1** — research core (CSMA/CA + packet airtime + Ideal MCS)
-- **E2** — research + always-on interferers (mechanism ablation)
+---
 
-See `SPRINT2_REPORT.md` §"Experiment Comparability Gate" for the full
-result and the metric-definition caveat.
+## Metrics (return fields)
 
-## Design documents
+Top-level (`Simulator.run()` returns):
 
-| Document | What |
+| Field | Unit | Meaning |
+|---|---|---|
+| `total_throughput_bps` | bits / s | Sum of successful payload bits / sim duration. **Goodput**, not airtime. |
+| `total_success_packets` | count | Packets delivered successfully |
+| `total_drop_packets` | count | Packets dropped after `retry_limit` |
+| `latency_mean_us` | µs | Mean enqueue→success latency |
+| `latency_p50_us` | µs | Median latency |
+| `latency_p95_us` | µs | 95th-percentile latency |
+| `per_link` | dict | Per-link breakdown keyed by `link_id` |
+| `channel_utilization` | dict | Per-channel busy fraction keyed by `channel_id`, in `[0, 1]` |
+
+Per-link (`result["per_link"][link_id]`):
+
+`success`, `success_bytes`, `collision`, `fail_phy`, `fail_no_ack`,
+`retry`, `drop`, `tx_attempts`, `throughput_bps`.
+
+---
+
+## Reproducibility
+
+> Same scenario + same seed + same config → **bit-identical** output,
+> including per-channel utilization and per-link latency percentiles.
+
+Seed is the only randomness source (single `numpy.random.Generator` per
+`Simulator`). All stochastic draws — backoff counters, shadowing,
+Poisson inter-arrivals — flow through that one generator.
+
+The V1 baseline numbers are reproducible with:
+
+| Scenario | Seed | Throughput |
+|---|---:|---:|
+| A | 2024 | 64.83 Mbps |
+| B | 2024 | 70.94 Mbps |
+| C | 6 | 207.84 Mbps |
+| M1 STR | 2024 | 129.75 Mbps |
+
+See `V1_RELEASE_REPORT.md` §5 for the full table.
+
+---
+
+## Documentation
+
+| File | What |
 |---|---|
-| `Design/RESEARCH_ENV_AUDIT.md` | Audit of legacy Project_3 abstractions that distort algorithm conclusions |
-| `Design/RESEARCH_ENV_DESIGN.md` | Sprint 1+2 design: time scales, two-phase slot processing, Controller API, MLO as Feature Pack |
-| `Design/MVP_AND_FEATURE_BACKLOG.md` | Core 10 + Research Infrastructure 9 + Feature Packs |
-| `Design/VALIDATION_PLAN.md` | Correctness validation (A) + Scientific Robustness (B) + Optional PHY Enhancement (D) |
+| `docs/USAGE_GUIDE.md` | **Start here.** Library mental model, how to run each scenario, how to build a new experiment, scripted control, traffic / PHY / MAC parameters, metrics, reproducible experiment template, MLO v0, validation commands, extension rules, known limitations. |
+| `V1_RELEASE_REPORT.md` | Canonical baseline numbers (seed, 5 s), freeze checklist, v1.0 capability boundary, known simplifications table, wall-clock numbers. |
 
-## What is NOT in this repository
-
-The legacy Project_3 environment code (`env.py`, `baseEnv.py`,
-`Exp_*.py`, `agent/`, `Models/`, `Results/`, `Figures/`, etc.) is
-intentionally **not** included. The new env supersedes it for new
-research; the legacy code remains in the user's separate `Project_3/`
-checkout for side-by-side experiments.
-
-## Status
-
-* **Sprint 1 Core**: 16/16 sanity + CSMA tests pass.
-* **Sprint 2 multi-BSS + Controller + Legacy Adapter**: working.
-* **Sprint 2.5 Comparability Gate**: passed (5 seeds, 3 conditions,
-  AP0 headline, mechanism ablation identifies duty cycle as dominant
-  factor, metric-definition mismatch documented).
-* **Sprint 3 / MLO / OFDMA / SR / OBSS_PD / capture effect / EDCA /
-  Block ACK / aggregation / 320 MHz / puncturing / mobility / TCP /
-  ns-3**: not implemented, on-demand per paper.
+Other files in the repo (sprint reports, design docs, MVP report) are
+historical and **not needed** by new users.

@@ -86,6 +86,9 @@ class MacStation:
         retry_limit: int = RETRY_LIMIT,
         cw_min: int = CW_MIN,
         cw_max: int = CW_MAX,
+        # MLO Feature Pack v0 — None for non-MLD MACs.
+        mld_id: Optional[int] = None,
+        mld_mode: str = "STR",
     ) -> None:
         self.ap_id = ap_id
         self.link_id = link_id
@@ -96,6 +99,8 @@ class MacStation:
         self.queue = queue
         self.trace = trace
         self.metrics = metrics
+        self.mld_id = mld_id
+        self.mld_mode = mld_mode
         # ChannelStateRegistry (multi-BSS) or single ChannelState (Sprint 1).
         # MacStation always accesses its channel via `self.channel_state` so
         # the rest of the code is unchanged.
@@ -129,6 +134,31 @@ class MacStation:
         self.current_tx_end_ns: int = 0
         # Pending TX start request from the slot planner.
         self.pending_tx_start: bool = False
+
+    def reset(self) -> None:
+        """Reset MAC state for a new episode (queue already cleared)."""
+        self.state = MacState.IDLE
+        self.backoff_counter = 0
+        self.retry_count = 0
+        self.frozen_counter = None
+        self.difs_end_ns = 0
+        self.current_packet = None
+        self.current_mcs = None
+        self.current_tx_start_ns = 0
+        self.current_tx_end_ns = 0
+        self.pending_tx_start = False
+
+    # ---- MLO (Feature Pack v0) ---------------------------------------
+
+    def is_active(self) -> bool:
+        """True iff the MAC is currently using the radio (any non-IDLE state).
+
+        Consulted by `MldTraffic` to decide whether to wake a peer MAC
+        in `single_radio` / mutual-exclusion mode (the experimental
+        simplified mode shipped with MLO v0 — see `MldConfig.mode`). STR
+        MLDs do not consult this.
+        """
+        return self.state != MacState.IDLE
 
     # ---- packet arrival ------------------------------------------------
 

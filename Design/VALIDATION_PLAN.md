@@ -55,7 +55,10 @@ suites. The list is intentionally small.
 | S14 | `event_loop.no_negative_time` | every event has `time_ns ≥ 0` and `time_ns ≥ clock` | exact |
 | S15 | `rng.reproducibility` | same seed, same scenario, same algorithm → identical event trace | exact |
 
-**Layer pass criterion**: all 15 sanity tests green.
+**Layer pass criterion**: all sanity tests green (15 conceptual slots
+S1–S15; in code, S7 is split into `S7` and `S7b` for statistical and
+formula-check coverage — see `wifi_simulator/tests/test_primitives.py`).
+The numbering and pass criteria in §A.1 below remain authoritative.
 
 #### A.1.1 Two-saturated-AP test — what to actually check (S10)
 
@@ -137,7 +140,8 @@ across at least 100 k events.
 
 The simulator is **correct** when:
 
-1. All 15 sanity tests (S1–S15) pass.
+1. All sanity tests (S1–S15, with S7 covering both statistical and
+   formula) pass.
 2. All 5 analytical tests (A1, A2, A3, A5, A6) pass at the listed tolerance.
 3. Deterministic reproducibility holds.
 
